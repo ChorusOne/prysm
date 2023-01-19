@@ -103,17 +103,17 @@ func processSyncAggregate(ctx context.Context, s state.BeaconState, sync *ethpb.
 				return nil, nil, err
 			}
 			votedKeys = append(votedKeys, pubKey)
-			if err := helpers.IncreaseBalance(s, vIdx, participantReward); err != nil {
+			if err := helpers.IncreaseBalance(s, vIdx, participantReward, helpers.ReasonRewardAttesterForAttestation); err != nil {
 				return nil, nil, err
 			}
 			earnedProposerReward += proposerReward
 		} else {
-			if err := helpers.DecreaseBalance(s, vIdx, participantReward); err != nil {
+			if err := helpers.DecreaseBalance(s, vIdx, participantReward, helpers.ReasonPenaliseAttesterForMissedAttestation); err != nil {
 				return nil, nil, err
 			}
 		}
 	}
-	if err := helpers.IncreaseBalance(s, proposerIndex, earnedProposerReward); err != nil {
+	if err := helpers.IncreaseBalance(s, proposerIndex, earnedProposerReward, helpers.ReasonRewardProposerForAttestations); err != nil {
 		return nil, nil, err
 	}
 	return s, votedKeys, err

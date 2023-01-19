@@ -170,7 +170,7 @@ func SlashValidator(
 	); err != nil {
 		return nil, err
 	}
-	if err := helpers.DecreaseBalance(s, slashedIdx, validator.EffectiveBalance/penaltyQuotient); err != nil {
+	if err := helpers.DecreaseBalance(s, slashedIdx, validator.EffectiveBalance/penaltyQuotient, helpers.ReasonProcessSlashing); err != nil {
 		return nil, err
 	}
 
@@ -182,11 +182,11 @@ func SlashValidator(
 	whistleBlowerIdx := proposerIdx
 	whistleblowerReward := validator.EffectiveBalance / params.BeaconConfig().WhistleBlowerRewardQuotient
 	proposerReward := whistleblowerReward / proposerRewardQuotient
-	err = helpers.IncreaseBalance(s, proposerIdx, proposerReward)
+	err = helpers.IncreaseBalance(s, proposerIdx, proposerReward, helpers.ReasonRewardProposerForIncludingWhistleblowing)
 	if err != nil {
 		return nil, err
 	}
-	err = helpers.IncreaseBalance(s, whistleBlowerIdx, whistleblowerReward-proposerReward)
+	err = helpers.IncreaseBalance(s, whistleBlowerIdx, whistleblowerReward-proposerReward, helpers.ReasonRewardWhistleblowerForReporting)
 	if err != nil {
 		return nil, err
 	}

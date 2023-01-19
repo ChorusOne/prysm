@@ -202,7 +202,7 @@ func ProcessDeposit(beaconState state.BeaconState, deposit *ethpb.Deposit, verif
 		if err := beaconState.AppendBalance(amount); err != nil {
 			return nil, newValidator, err
 		}
-	} else if err := helpers.IncreaseBalance(beaconState, index, amount); err != nil {
+	} else if err := helpers.IncreaseBalance(beaconState, index, amount, helpers.ReasonProcessDeposit); err != nil {
 		return nil, newValidator, err
 	}
 

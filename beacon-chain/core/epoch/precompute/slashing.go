@@ -49,7 +49,7 @@ func ProcessSlashingsPrecompute(s state.BeaconState, pBal *Balance) error {
 		if val.Slashed && correctEpoch {
 			penaltyNumerator := val.EffectiveBalance / increment * minSlashing
 			penalty := penaltyNumerator / pBal.ActiveCurrentEpoch * increment
-			if err := helpers.DecreaseBalance(s, types.ValidatorIndex(idx), penalty); err != nil {
+			if err := helpers.DecreaseBalance(s, types.ValidatorIndex(idx), penalty, helpers.ReasonProcessSlashing); err != nil {
 				return false, val, err
 			}
 			return true, val, nil

@@ -131,7 +131,7 @@ func ProcessWithdrawals(st state.BeaconState, withdrawals []*enginev1.Withdrawal
 		if withdrawal.Amount != expected[i].Amount {
 			return nil, errInvalidWithdrawalAmount
 		}
-		err := helpers.DecreaseBalance(st, withdrawal.ValidatorIndex, withdrawal.Amount)
+		err := helpers.DecreaseBalance(st, withdrawal.ValidatorIndex, withdrawal.Amount, helpers.ReasonProcessWithdrawal)
 		if err != nil {
 			return nil, errors.Wrap(err, "could not decrease balance")
 		}

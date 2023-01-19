@@ -233,7 +233,7 @@ func RewardProposer(ctx context.Context, beaconState state.BeaconState, proposer
 		return err
 	}
 
-	return helpers.IncreaseBalance(beaconState, i, proposerReward)
+	return helpers.IncreaseBalance(beaconState, i, proposerReward, helpers.ReasonRewardProposerForProposal)
 }
 
 // AttestationParticipationFlagIndices retrieves a map of attestation scoring based on Altair's participation flag indices.

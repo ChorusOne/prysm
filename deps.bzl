@@ -4307,3 +4307,10 @@ def prysm_deps():
         remote = "https://github.com/vaticle/bazel-distribution",
         shallow_since = "1569509514 +0300",
     )
+
+    # go_repository(
+    #     name = "com_github_jackc_pgx",
+    #     importpath = "github.com/jackc/pgx",
+    #     sum = "h1:2zP5OD7kiyR3xzRYMhOcXVvkDZsImVXfj+yIyTQf3/o=",
+    #     version = "v3.6.2+incompatible",
+    # )

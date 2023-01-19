@@ -199,7 +199,7 @@ func ProcessSlashings(state state.BeaconState, slashingMultiplier uint64) (state
 		if val.Slashed && correctEpoch {
 			penaltyNumerator := val.EffectiveBalance / increment * minSlashing
 			penalty := penaltyNumerator / totalBalance * increment
-			if err := helpers.DecreaseBalance(state, types.ValidatorIndex(idx), penalty); err != nil {
+			if err := helpers.DecreaseBalance(state, types.ValidatorIndex(idx), penalty, helpers.ReasonProcessSlashing); err != nil {
 				return false, val, err
 			}
 			return true, val, nil
