@@ -3,6 +3,7 @@ load("@prysm//tools/go:def.bzl", "go_library", "go_test")
 go_library(
     name = "go_default_library",
     srcs = [
+        "balance_update.go",
         "chain_info.go",
         "error.go",
         "execution_engine.go",
@@ -62,6 +63,7 @@ go_library(
         "//config/features:go_default_library",
         "//config/fieldparams:go_default_library",
         "//config/params:go_default_library",
+        "//consensus-types/balance-update:go_default_library",
         "//consensus-types/blocks:go_default_library",
         "//consensus-types/interfaces:go_default_library",
         "//consensus-types/payload-attribute:go_default_library",

@@ -279,6 +279,9 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 		return err
 	}
 	onBlockProcessingTime.Observe(float64(time.Since(startTime).Milliseconds()))
+
+	logBalanceUpdates(postState)
+
 	return nil
 }
 
@@ -376,6 +379,8 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 			header:  h,
 		}
 		sigSet.Join(set)
+
+		logBalanceUpdates(preState)
 	}
 
 	var verify bool

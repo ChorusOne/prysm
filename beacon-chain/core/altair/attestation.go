@@ -11,6 +11,7 @@ import (
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/core/time"
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/state"
 	"github.com/prysmaticlabs/prysm/v3/config/params"
+	balanceupdate "github.com/prysmaticlabs/prysm/v3/consensus-types/balance-update"
 	consensusblocks "github.com/prysmaticlabs/prysm/v3/consensus-types/blocks"
 	"github.com/prysmaticlabs/prysm/v3/consensus-types/interfaces"
 	types "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives"
@@ -233,7 +234,7 @@ func RewardProposer(ctx context.Context, beaconState state.BeaconState, proposer
 		return err
 	}
 
-	return helpers.IncreaseBalance(beaconState, i, proposerReward, helpers.ReasonRewardProposerForProposal)
+	return helpers.IncreaseBalance(beaconState, i, proposerReward, balanceupdate.ProposerProposal)
 }
 
 // AttestationParticipationFlagIndices retrieves a map of attestation scoring based on Altair's participation flag indices.

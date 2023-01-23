@@ -7,7 +7,6 @@ import (
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/core/time"
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/state"
 	"github.com/prysmaticlabs/prysm/v3/config/params"
-	log "github.com/sirupsen/logrus"
 )
 
 // ProcessSyncCommitteeUpdates  processes sync client committee updates for the beacon state.

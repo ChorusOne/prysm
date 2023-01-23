@@ -9,6 +9,7 @@ import (
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/core/signing"
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/state"
 	"github.com/prysmaticlabs/prysm/v3/config/params"
+	balanceupdate "github.com/prysmaticlabs/prysm/v3/consensus-types/balance-update"
 	"github.com/prysmaticlabs/prysm/v3/container/trie"
 	"github.com/prysmaticlabs/prysm/v3/contracts/deposit"
 	"github.com/prysmaticlabs/prysm/v3/crypto/bls"
@@ -202,7 +203,9 @@ func ProcessDeposit(beaconState state.BeaconState, deposit *ethpb.Deposit, verif
 		if err := beaconState.AppendBalance(amount); err != nil {
 			return nil, newValidator, err
 		}
-	} else if err := helpers.IncreaseBalance(beaconState, index, amount, helpers.ReasonProcessDeposit); err != nil {
+		index, _ := beaconState.ValidatorIndexByPubkey(bytesutil.ToBytes48(pubKey))
+		beaconState.LogBalanceIncrease(index, amount, balanceupdate.ValidatorDeposit)
+	} else if err := helpers.IncreaseBalance(beaconState, index, amount, balanceupdate.ValidatorDeposit); err != nil {
 		return nil, newValidator, err
 	}
 

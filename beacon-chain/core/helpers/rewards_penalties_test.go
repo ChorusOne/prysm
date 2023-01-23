@@ -7,6 +7,7 @@ import (
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/core/time"
 	state_native "github.com/prysmaticlabs/prysm/v3/beacon-chain/state/state-native"
 	"github.com/prysmaticlabs/prysm/v3/config/params"
+	balanceupdate "github.com/prysmaticlabs/prysm/v3/consensus-types/balance-update"
 	types "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives"
 	ethpb "github.com/prysmaticlabs/prysm/v3/proto/prysm/v1alpha1"
 	"github.com/prysmaticlabs/prysm/v3/testing/assert"
@@ -135,7 +136,7 @@ func TestIncreaseBalance_OK(t *testing.T) {
 			Balances: test.b,
 		})
 		require.NoError(t, err)
-		require.NoError(t, IncreaseBalance(state, test.i, test.nb, ""))
+		require.NoError(t, IncreaseBalance(state, test.i, test.nb, balanceupdate.Test))
 		assert.Equal(t, test.eb, state.Balances()[test.i], "Incorrect Validator balance")
 	}
 }
@@ -159,7 +160,7 @@ func TestDecreaseBalance_OK(t *testing.T) {
 			Balances: test.b,
 		})
 		require.NoError(t, err)
-		require.NoError(t, DecreaseBalance(state, test.i, test.nb, ""))
+		require.NoError(t, DecreaseBalance(state, test.i, test.nb, balanceupdate.Test))
 		assert.Equal(t, test.eb, state.Balances()[test.i], "Incorrect Validator balance")
 	}
 }
@@ -271,6 +272,6 @@ func TestIncreaseBadBalance_NotOK(t *testing.T) {
 			Balances: test.b,
 		})
 		require.NoError(t, err)
-		require.ErrorContains(t, "addition overflows", IncreaseBalance(state, test.i, test.nb, ""))
+		require.ErrorContains(t, "addition overflows", IncreaseBalance(state, test.i, test.nb, balanceupdate.Test))
 	}
 }

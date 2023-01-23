@@ -8,6 +8,7 @@ import (
 
 	"github.com/prysmaticlabs/go-bitfield"
 	fieldparams "github.com/prysmaticlabs/prysm/v3/config/fieldparams"
+	balanceupdate "github.com/prysmaticlabs/prysm/v3/consensus-types/balance-update"
 	"github.com/prysmaticlabs/prysm/v3/consensus-types/interfaces"
 	types "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives"
 	enginev1 "github.com/prysmaticlabs/prysm/v3/proto/engine/v1"
@@ -129,6 +130,9 @@ type ReadOnlyBalances interface {
 	Balances() []uint64
 	BalanceAtIndex(idx types.ValidatorIndex) (uint64, error)
 	BalancesLength() int
+
+	BalanceUpdateBreakdown() []balanceupdate.Breakdown
+	SparseBalanceUpdateBreakdown() map[types.ValidatorIndex]balanceupdate.Breakdown
 }
 
 // ReadOnlyCheckpoint defines a struct which only has read access to checkpoint methods.
@@ -232,6 +236,10 @@ type WriteOnlyBalances interface {
 	SetBalances(val []uint64) error
 	UpdateBalancesAtIndex(idx types.ValidatorIndex, val uint64) error
 	AppendBalance(bal uint64) error
+
+	LogBalanceIncrease(idx types.ValidatorIndex, delta uint64, reason balanceupdate.Reason)
+	LogBalanceDecrease(idx types.ValidatorIndex, delta uint64, reason balanceupdate.Reason)
+	SetBalanceUpdateBreakdown(bub []balanceupdate.Breakdown)
 }
 
 // WriteOnlyRandaoMixes defines a struct which only has write access to randao mixes methods.

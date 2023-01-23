@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/state"
 	fieldparams "github.com/prysmaticlabs/prysm/v3/config/fieldparams"
+	balanceupdate "github.com/prysmaticlabs/prysm/v3/consensus-types/balance-update"
 	types "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives"
 	"github.com/prysmaticlabs/prysm/v3/encoding/bytesutil"
 	ethpb "github.com/prysmaticlabs/prysm/v3/proto/prysm/v1alpha1"
@@ -213,6 +214,28 @@ func (b *BeaconState) BalanceAtIndex(idx types.ValidatorIndex) (uint64, error) {
 		return 0, fmt.Errorf("index of %d does not exist", idx)
 	}
 	return b.balances[idx], nil
+}
+
+func (b *BeaconState) BalanceUpdateBreakdown() []balanceupdate.Breakdown {
+	b.lock.Lock()
+	defer b.lock.Unlock()
+
+	res := make([]balanceupdate.Breakdown, len(b.balanceUpdateBreakdown))
+	copy(res, b.balanceUpdateBreakdown)
+	return res
+}
+
+func (b *BeaconState) SparseBalanceUpdateBreakdown() map[types.ValidatorIndex]balanceupdate.Breakdown {
+	b.lock.RLock()
+	defer b.lock.RUnlock()
+
+	res := make(map[types.ValidatorIndex]balanceupdate.Breakdown)
+	for idx, b := range b.balanceUpdateBreakdown {
+		if !b.IsZero() {
+			res[types.ValidatorIndex(idx)] = b
+		}
+	}
+	return res
 }
 
 // BalancesLength returns the length of the balances slice.

@@ -9,9 +9,13 @@ import (
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/core/time"
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/state"
 	"github.com/prysmaticlabs/prysm/v3/config/params"
+	balanceupdate "github.com/prysmaticlabs/prysm/v3/consensus-types/balance-update"
 	"github.com/prysmaticlabs/prysm/v3/math"
+	logrus "github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
 )
+
+var log = logrus.WithField("prefix", "altair")
 
 // InitializePrecomputeValidators precomputes individual validator for its attested balances and the total sum of validators attested balances of the epoch.
 func InitializePrecomputeValidators(ctx context.Context, beaconState state.BeaconState) ([]*precompute.Validator, *precompute.Balance, error) {
@@ -226,7 +230,7 @@ func ProcessRewardsAndPenaltiesPrecompute(
 		return beaconState, errors.New("validator registries not the same length as state's validator registries")
 	}
 
-	attsRewards, attsPenalties, err := AttestationsDelta(beaconState, bal, vals)
+	attsRewards, attsPenalties, attsBreakdown, err := AttestationsDelta(beaconState, bal, vals)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get attestation delta")
 	}
@@ -249,16 +253,22 @@ func ProcessRewardsAndPenaltiesPrecompute(
 	if err := beaconState.SetBalances(balances); err != nil {
 		return nil, errors.Wrap(err, "could not set validator balances")
 	}
+	beaconState.SetBalanceUpdateBreakdown(attsBreakdown)
 
 	return beaconState, nil
 }
 
 // AttestationsDelta computes and returns the rewards and penalties differences for individual validators based on the
 // voting records.
-func AttestationsDelta(beaconState state.BeaconState, bal *precompute.Balance, vals []*precompute.Validator) (rewards, penalties []uint64, err error) {
+func AttestationsDelta(
+	beaconState state.BeaconState,
+	bal *precompute.Balance,
+	vals []*precompute.Validator,
+) (rewards, penalties []uint64, breakdown []balanceupdate.Breakdown, err error) {
 	numOfVals := beaconState.NumValidators()
 	rewards = make([]uint64, numOfVals)
 	penalties = make([]uint64, numOfVals)
+	breakdown = make([]balanceupdate.Breakdown, numOfVals)
 
 	cfg := params.BeaconConfig()
 	prevEpoch := time.PrevEpoch(beaconState)
@@ -272,25 +282,27 @@ func AttestationsDelta(beaconState state.BeaconState, bal *precompute.Balance, v
 	bias := cfg.InactivityScoreBias
 	inactivityPenaltyQuotient, err := beaconState.InactivityPenaltyQuotient()
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	inactivityDenominator := bias * inactivityPenaltyQuotient
 
 	for i, v := range vals {
-		rewards[i], penalties[i], err = attestationDelta(bal, v, baseRewardMultiplier, inactivityDenominator, leak)
+		rewards[i], penalties[i], err = attestationDelta(bal, v, baseRewardMultiplier, inactivityDenominator, leak, &breakdown[i])
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
 	}
 
-	return rewards, penalties, nil
+	return rewards, penalties, breakdown, nil
 }
 
 func attestationDelta(
 	bal *precompute.Balance,
 	val *precompute.Validator,
 	baseRewardMultiplier, inactivityDenominator uint64,
-	inactivityLeak bool) (reward, penalty uint64, err error) {
+	inactivityLeak bool,
+	updateBreakdown *balanceupdate.Breakdown,
+) (reward, penalty uint64, err error) {
 	eligible := val.IsActivePrevEpoch || (val.IsSlashed && !val.IsWithdrawableCurrentEpoch)
 	// Per spec `ActiveCurrentEpoch` can't be 0 to process attestation delta.
 	if !eligible || bal.ActiveCurrentEpoch == 0 {
@@ -312,27 +324,37 @@ func attestationDelta(
 	if val.IsPrevEpochSourceAttester && !val.IsSlashed {
 		if !inactivityLeak {
 			n := baseReward * srcWeight * (bal.PrevEpochAttested / increment)
-			reward += n / (activeIncrement * weightDenominator)
+			delta := n / (activeIncrement * weightDenominator)
+			reward += delta
+			updateBreakdown.Add(delta, balanceupdate.AttesterAttestationSource)
 		}
 	} else {
-		penalty += baseReward * srcWeight / weightDenominator
+		delta := baseReward * srcWeight / weightDenominator
+		penalty += delta
+		updateBreakdown.Sub(delta, balanceupdate.AttesterAttestationSource)
 	}
 
 	// Process target reward / penalty
 	if val.IsPrevEpochTargetAttester && !val.IsSlashed {
 		if !inactivityLeak {
 			n := baseReward * tgtWeight * (bal.PrevEpochTargetAttested / increment)
-			reward += n / (activeIncrement * weightDenominator)
+			delta := n / (activeIncrement * weightDenominator)
+			reward += delta
+			updateBreakdown.Add(delta, balanceupdate.AttesterAttestationTarget)
 		}
 	} else {
-		penalty += baseReward * tgtWeight / weightDenominator
+		delta := baseReward * tgtWeight / weightDenominator
+		penalty += delta
+		updateBreakdown.Sub(delta, balanceupdate.AttesterAttestationTarget)
 	}
 
 	// Process head reward / penalty
 	if val.IsPrevEpochHeadAttester && !val.IsSlashed {
 		if !inactivityLeak {
 			n := baseReward * headWeight * (bal.PrevEpochHeadAttested / increment)
-			reward += n / (activeIncrement * weightDenominator)
+			delta := n / (activeIncrement * weightDenominator)
+			reward += delta
+			updateBreakdown.Add(delta, balanceupdate.AttesterHead)
 		}
 	}
 
@@ -343,7 +365,9 @@ func attestationDelta(
 		if err != nil {
 			return 0, 0, err
 		}
-		penalty += n / inactivityDenominator
+		delta := n / inactivityDenominator
+		penalty += delta
+		updateBreakdown.Sub(delta, balanceupdate.AttesterInactivity)
 	}
 
 	return reward, penalty, nil

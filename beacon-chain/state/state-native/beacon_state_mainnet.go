@@ -10,6 +10,7 @@ import (
 	customtypes "github.com/prysmaticlabs/prysm/v3/beacon-chain/state/state-native/custom-types"
 	nativetypes "github.com/prysmaticlabs/prysm/v3/beacon-chain/state/state-native/types"
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/state/stateutil"
+	balanceupdate "github.com/prysmaticlabs/prysm/v3/consensus-types/balance-update"
 	eth2types "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives"
 	enginev1 "github.com/prysmaticlabs/prysm/v3/proto/engine/v1"
 	ethpb "github.com/prysmaticlabs/prysm/v3/proto/prysm/v1alpha1"
@@ -59,4 +60,6 @@ type BeaconState struct {
 	valMapHandler         *stateutil.ValidatorMapHandler
 	merkleLayers          [][][]byte
 	sharedFieldReferences map[nativetypes.FieldIndex]*stateutil.Reference
+
+	balanceUpdateBreakdown []balanceupdate.Breakdown
 }

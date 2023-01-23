@@ -8,6 +8,7 @@ import (
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/core/signing"
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/state"
 	"github.com/prysmaticlabs/prysm/v3/config/params"
+	balanceupdate "github.com/prysmaticlabs/prysm/v3/consensus-types/balance-update"
 	"github.com/prysmaticlabs/prysm/v3/consensus-types/interfaces"
 	types "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives"
 	"github.com/prysmaticlabs/prysm/v3/crypto/bls"
@@ -131,7 +132,7 @@ func ProcessWithdrawals(st state.BeaconState, withdrawals []*enginev1.Withdrawal
 		if withdrawal.Amount != expected[i].Amount {
 			return nil, errInvalidWithdrawalAmount
 		}
-		err := helpers.DecreaseBalance(st, withdrawal.ValidatorIndex, withdrawal.Amount, helpers.ReasonProcessWithdrawal)
+		err := helpers.DecreaseBalance(st, withdrawal.ValidatorIndex, withdrawal.Amount, balanceupdate.ValidatorWithdrawal)
 		if err != nil {
 			return nil, errors.Wrap(err, "could not decrease balance")
 		}

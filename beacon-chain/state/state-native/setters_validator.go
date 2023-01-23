@@ -4,6 +4,7 @@ import (
 	"github.com/pkg/errors"
 	nativetypes "github.com/prysmaticlabs/prysm/v3/beacon-chain/state/state-native/types"
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/state/stateutil"
+	balanceupdate "github.com/prysmaticlabs/prysm/v3/consensus-types/balance-update"
 	types "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives"
 	"github.com/prysmaticlabs/prysm/v3/encoding/bytesutil"
 	ethpb "github.com/prysmaticlabs/prysm/v3/proto/prysm/v1alpha1"
@@ -118,6 +119,27 @@ func (b *BeaconState) UpdateBalancesAtIndex(idx types.ValidatorIndex, val uint64
 	b.markFieldAsDirty(nativetypes.Balances)
 	b.addDirtyIndices(nativetypes.Balances, []uint64{uint64(idx)})
 	return nil
+}
+
+func (b *BeaconState) LogBalanceIncrease(idx types.ValidatorIndex, delta uint64, reason balanceupdate.Reason) {
+	b.lock.Lock()
+	defer b.lock.Unlock()
+
+	b.balanceUpdateBreakdown[idx].Add(delta, reason)
+}
+
+func (b *BeaconState) LogBalanceDecrease(idx types.ValidatorIndex, delta uint64, reason balanceupdate.Reason) {
+	b.lock.Lock()
+	defer b.lock.Unlock()
+
+	b.balanceUpdateBreakdown[idx].Sub(delta, reason)
+}
+
+func (b *BeaconState) SetBalanceUpdateBreakdown(bub []balanceupdate.Breakdown) {
+	b.lock.Lock()
+	defer b.lock.Unlock()
+
+	b.balanceUpdateBreakdown = bub
 }
 
 // SetSlashings for the beacon state. Updates the entire

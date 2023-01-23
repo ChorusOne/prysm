@@ -9,6 +9,7 @@ import (
 	p2pType "github.com/prysmaticlabs/prysm/v3/beacon-chain/p2p/types"
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/state"
 	"github.com/prysmaticlabs/prysm/v3/config/params"
+	balanceupdate "github.com/prysmaticlabs/prysm/v3/consensus-types/balance-update"
 	"github.com/prysmaticlabs/prysm/v3/crypto/bls"
 	"github.com/prysmaticlabs/prysm/v3/encoding/bytesutil"
 	ethpb "github.com/prysmaticlabs/prysm/v3/proto/prysm/v1alpha1"
@@ -103,17 +104,17 @@ func processSyncAggregate(ctx context.Context, s state.BeaconState, sync *ethpb.
 				return nil, nil, err
 			}
 			votedKeys = append(votedKeys, pubKey)
-			if err := helpers.IncreaseBalance(s, vIdx, participantReward, helpers.ReasonRewardAttesterForAttestation); err != nil {
+			if err := helpers.IncreaseBalance(s, vIdx, participantReward, balanceupdate.AttesterAttestation); err != nil {
 				return nil, nil, err
 			}
 			earnedProposerReward += proposerReward
 		} else {
-			if err := helpers.DecreaseBalance(s, vIdx, participantReward, helpers.ReasonPenaliseAttesterForMissedAttestation); err != nil {
+			if err := helpers.DecreaseBalance(s, vIdx, participantReward, balanceupdate.AttesterAttestation); err != nil {
 				return nil, nil, err
 			}
 		}
 	}
-	if err := helpers.IncreaseBalance(s, proposerIndex, earnedProposerReward, helpers.ReasonRewardProposerForAttestations); err != nil {
+	if err := helpers.IncreaseBalance(s, proposerIndex, earnedProposerReward, balanceupdate.ProposerAttestations); err != nil {
 		return nil, nil, err
 	}
 	return s, votedKeys, err

@@ -14,6 +14,7 @@ import (
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/state/types"
 	fieldparams "github.com/prysmaticlabs/prysm/v3/config/fieldparams"
 	"github.com/prysmaticlabs/prysm/v3/config/params"
+	balanceupdate "github.com/prysmaticlabs/prysm/v3/consensus-types/balance-update"
 	"github.com/prysmaticlabs/prysm/v3/container/slice"
 	"github.com/prysmaticlabs/prysm/v3/crypto/hash"
 	"github.com/prysmaticlabs/prysm/v3/encoding/bytesutil"
@@ -152,6 +153,7 @@ func InitializeFromProtoUnsafePhase0(st *ethpb.BeaconState) (state.BeaconState, 
 		eth1DepositIndex:            st.Eth1DepositIndex,
 		validators:                  st.Validators,
 		balances:                    st.Balances,
+		balanceUpdateBreakdown:      make([]balanceupdate.Breakdown, len(st.Balances)),
 		randaoMixes:                 &mixes,
 		slashings:                   st.Slashings,
 		previousEpochAttestations:   st.PreviousEpochAttestations,
@@ -238,6 +240,7 @@ func InitializeFromProtoUnsafeAltair(st *ethpb.BeaconStateAltair) (state.BeaconS
 		eth1DepositIndex:            st.Eth1DepositIndex,
 		validators:                  st.Validators,
 		balances:                    st.Balances,
+		balanceUpdateBreakdown:      make([]balanceupdate.Breakdown, len(st.Balances)),
 		randaoMixes:                 &mixes,
 		slashings:                   st.Slashings,
 		previousEpochParticipation:  st.PreviousEpochParticipation,
@@ -328,6 +331,7 @@ func InitializeFromProtoUnsafeBellatrix(st *ethpb.BeaconStateBellatrix) (state.B
 		eth1DepositIndex:             st.Eth1DepositIndex,
 		validators:                   st.Validators,
 		balances:                     st.Balances,
+		balanceUpdateBreakdown:       make([]balanceupdate.Breakdown, len(st.Balances)),
 		randaoMixes:                  &mixes,
 		slashings:                    st.Slashings,
 		previousEpochParticipation:   st.PreviousEpochParticipation,
@@ -420,6 +424,7 @@ func InitializeFromProtoUnsafeCapella(st *ethpb.BeaconStateCapella) (state.Beaco
 		eth1DepositIndex:                    st.Eth1DepositIndex,
 		validators:                          st.Validators,
 		balances:                            st.Balances,
+		balanceUpdateBreakdown:              make([]balanceupdate.Breakdown, len(st.Balances)),
 		randaoMixes:                         &mixes,
 		slashings:                           st.Slashings,
 		previousEpochParticipation:          st.PreviousEpochParticipation,
@@ -514,6 +519,7 @@ func (b *BeaconState) Copy() state.BeaconState {
 
 		// Large arrays, increases over time.
 		balances:                   b.balances,
+		balanceUpdateBreakdown:     b.balanceUpdateBreakdown,
 		historicalRoots:            b.historicalRoots,
 		historicalSummaries:        b.historicalSummaries,
 		validators:                 b.validators,

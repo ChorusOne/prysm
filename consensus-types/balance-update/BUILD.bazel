@@ -1,0 +1,22 @@
+load("@prysm//tools/go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "balance_update.go",
+        "breakdown.go",
+        "reason.go",
+    ],
+    importpath = "github.com/prysmaticlabs/prysm/v3/consensus-types/balance-update",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "balance_update_test.go",
+        "breakdown_test.go",
+    ],
+    embed = [":go_default_library"],
+    deps = ["//testing/assert:go_default_library"],
+)

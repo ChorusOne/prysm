@@ -12,6 +12,7 @@ import (
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/core/time"
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/state"
 	"github.com/prysmaticlabs/prysm/v3/config/params"
+	balanceupdate "github.com/prysmaticlabs/prysm/v3/consensus-types/balance-update"
 	types "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives"
 	mathutil "github.com/prysmaticlabs/prysm/v3/math"
 	ethpb "github.com/prysmaticlabs/prysm/v3/proto/prysm/v1alpha1"
@@ -170,7 +171,7 @@ func SlashValidator(
 	); err != nil {
 		return nil, err
 	}
-	if err := helpers.DecreaseBalance(s, slashedIdx, validator.EffectiveBalance/penaltyQuotient, helpers.ReasonProcessSlashing); err != nil {
+	if err := helpers.DecreaseBalance(s, slashedIdx, validator.EffectiveBalance/penaltyQuotient, balanceupdate.ValidatorSlashing); err != nil {
 		return nil, err
 	}
 
@@ -182,11 +183,11 @@ func SlashValidator(
 	whistleBlowerIdx := proposerIdx
 	whistleblowerReward := validator.EffectiveBalance / params.BeaconConfig().WhistleBlowerRewardQuotient
 	proposerReward := whistleblowerReward / proposerRewardQuotient
-	err = helpers.IncreaseBalance(s, proposerIdx, proposerReward, helpers.ReasonRewardProposerForIncludingWhistleblowing)
+	err = helpers.IncreaseBalance(s, proposerIdx, proposerReward, balanceupdate.ProposerWhistleblowing)
 	if err != nil {
 		return nil, err
 	}
-	err = helpers.IncreaseBalance(s, whistleBlowerIdx, whistleblowerReward-proposerReward, helpers.ReasonRewardWhistleblowerForReporting)
+	err = helpers.IncreaseBalance(s, whistleBlowerIdx, whistleblowerReward-proposerReward, balanceupdate.ValidatorWhistleblowing)
 	if err != nil {
 		return nil, err
 	}
